@@ -37,6 +37,11 @@ class Transaction extends Model
         return $this->belongsTo(User::class, 'seller_id');
     }
 
+    public function messages()
+    {
+        return $this->hasMany(Message::class);
+    }
+
     public function review()
     {
         return $this->hasOne(Review::class);

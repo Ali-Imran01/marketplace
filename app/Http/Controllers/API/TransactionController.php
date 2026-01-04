@@ -9,24 +9,30 @@ use App\Http\Resources\TransactionResource;
 use App\Models\Item;
 use App\Models\Transaction;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-
 class TransactionController extends Controller
 {
+    protected $orderService;
+
+    public function __construct(\App\Services\OrderStateService $orderService)
+    {
+        $this->orderService = $orderService;
+    }
+
     public function index(Request $request)
     {
-        $user = $request->user();
-        $transactions = Transaction::where('buyer_id', $user->id)
-            ->orWhere('seller_id', $user->id)
+        $userId = $request->user()->id;
+        $transactions = Transaction::where('buyer_id', $userId)
+            ->orWhere('seller_id', $userId)
             ->with(['item', 'buyer', 'seller'])
             ->latest()
-            ->paginate(10);
+            ->paginate(20);
 
         return TransactionResource::collection($transactions);
     }
 
     public function store(Request $request)
     {
+        $userId = $request->user()->id;
         $validated = $request->validate([
             'item_id' => 'required|exists:items,id',
             'offered_price' => 'required|numeric|min:0',
@@ -34,7 +40,7 @@ class TransactionController extends Controller
 
         $item = Item::findOrFail($validated['item_id']);
 
-        if ($item->user_id === $request->user()->id) {
+        if ($item->user_id == $userId) {
             return response()->json(['message' => 'You cannot buy your own item'], 403);
         }
 
@@ -44,7 +50,7 @@ class TransactionController extends Controller
 
         $transaction = Transaction::create([
             'item_id' => $item->id,
-            'buyer_id' => $request->user()->id,
+            'buyer_id' => $userId,
             'seller_id' => $item->user_id,
             'offered_price' => $validated['offered_price'],
             'status' => TransactionStatus::REQUESTED,
@@ -64,22 +70,20 @@ class TransactionController extends Controller
         $this->authorize('update', $transaction);
 
         $validated = $request->validate([
-            'status' => 'required|string', // Should validate against Enum
+            'status' => 'required|string',
+            'description' => 'sometimes|string|max:500'
         ]);
 
-        $newStatus = TransactionStatus::from($validated['status']);
-
-        DB::transaction(function () use ($transaction, $newStatus) {
-            $transaction->update(['status' => $newStatus]);
-
-            // Update item status based on transaction status
-            if ($newStatus === TransactionStatus::ACCEPTED) {
-                $transaction->item->update(['status' => ItemStatus::RESERVED]);
-            } elseif ($newStatus === TransactionStatus::COMPLETED) {
-                $transaction->item->update(['status' => ItemStatus::SOLD]);
-            }
-        });
-
-        return new TransactionResource($transaction->load(['item', 'buyer', 'seller']));
+        try {
+            $this->orderService->transition($transaction, $validated['status'], $validated['description'] ?? null);
+            return new TransactionResource($transaction->fresh(['item', 'buyer', 'seller']));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error("Transaction Update Error: " . $e->getMessage(), [
+                'transaction_id' => $transaction->id,
+                'status' => $validated['status'],
+                'user_id' => auth()->id()
+            ]);
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 }

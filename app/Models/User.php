@@ -21,6 +21,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'otp_code',
+        'otp_expires_at',
+        'otp_attempts',
+        'otp_sent_at',
     ];
 
     /**
@@ -41,5 +46,33 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'otp_expires_at' => 'datetime',
+        'otp_sent_at' => 'datetime',
+        'otp_attempts' => 'integer',
     ];
+
+    public function items()
+    {
+        return $this->hasMany(Item::class);
+    }
+
+    public function buyerTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'buyer_id');
+    }
+
+    public function sellerTransactions()
+    {
+        return $this->hasMany(Transaction::class, 'seller_id');
+    }
+
+    public function messagesSent()
+    {
+        return $this->hasMany(Message::class, 'sender_id');
+    }
+
+    public function messagesReceived()
+    {
+        return $this->hasMany(Message::class, 'receiver_id');
+    }
 }

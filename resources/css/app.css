@@ -1,3 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    body {
+        @apply font-sans bg-[#f8f9fc] text-gray-900;
+        -webkit-font-smoothing: antialiased;
+    }
+}
+
+@layer components {
+    .brand-glass {
+        @apply bg-white/70 backdrop-blur-xl border border-white/20;
+    }
+
+    .brand-button {
+        @apply px-6 py-3 rounded-2xl font-bold transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:active:scale-100;
+    }
+
+    .brand-button-primary {
+        @apply brand-button bg-brand-600 text-white shadow-lg shadow-brand-600/20 hover:bg-brand-700 hover:shadow-brand-600/30;
+    }
+
+    .brand-card {
+        @apply bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-500;
+    }
+}
+
+/* Custom scrollbar for a premium feel */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    @apply bg-gray-200 rounded-full transition-colors;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-brand-300;
+}
