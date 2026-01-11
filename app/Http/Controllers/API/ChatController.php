@@ -73,6 +73,9 @@ class ChatController extends Controller
 
         $message->receiver->notify(new MessageReceived($message));
 
+        // Trigger real-time event
+        broadcast(new \App\Events\MessageSent($message))->toOthers();
+
         return response()->json($message->load(['sender', 'receiver']));
     }
 

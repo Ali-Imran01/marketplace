@@ -21,7 +21,16 @@ const MyProfile = () => {
         setMessage({ type: '', text: '' });
 
         try {
-            await userService.updateProfile(formData);
+            const res = await userService.updateProfile(formData);
+            const updatedUser = res.data.data; // UserResource wraps it in 'data'
+
+            // Re-use current user fields that might not be in the resource
+            const finalUser = { ...user, ...updatedUser };
+
+            // Update context
+            setUser(finalUser);
+            localStorage.setItem('user', JSON.stringify(finalUser));
+
             setMessage({ type: 'success', text: 'Identity updated successfully.' });
             setFormData(prev => ({ ...prev, password: '', password_confirmation: '' }));
         } catch (error) {

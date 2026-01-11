@@ -58,6 +58,7 @@ Route::prefix('v1')->group(function () {
         Route::get('/notifications', [NotificationController::class, 'index']);
         Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
         Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead']);
+        Route::put('/notifications/transaction/{transactionId}/read', [NotificationController::class, 'markTransactionRead']);
         Route::delete('/notifications/{id}', [NotificationController::class, 'destroy']);
 
         // Payment Routes

@@ -18,7 +18,10 @@ class UserResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'email' => $this->email,
+            'role' => $this->role,
             'joined_at' => $this->created_at->format('M Y'),
+            'email_verified_at' => $this->email_verified_at,
             'avg_rating' => $avgRating,
             'review_count' => $ratings->count(),
             'active_items_count' => $this->items()->where('status', ItemStatus::AVAILABLE)->count(),

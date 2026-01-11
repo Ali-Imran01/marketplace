@@ -103,46 +103,46 @@ const ItemDetail = () => {
                     </div>
 
                     {/* Meta Info */}
-                    <div className="mt-10 grid grid-cols-3 gap-6">
-                        <div className="bg-gray-50/50 p-6 rounded-3xl border border-gray-100">
+                    <div className="mt-8 sm:mt-10 grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-6">
+                        <div className="bg-gray-100/30 p-4 sm:p-6 rounded-3xl border border-gray-100/50">
                             <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Category</p>
-                            <p className="font-black text-gray-900">{item.category.name}</p>
+                            <p className="font-black text-gray-900 text-sm sm:text-base truncate">{item.category.name}</p>
                         </div>
-                        <div className="bg-gray-50/50 p-6 rounded-3xl border border-gray-100">
+                        <div className="bg-gray-100/30 p-4 sm:p-6 rounded-3xl border border-gray-100/50">
                             <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Status</p>
-                            <p className="font-black text-emerald-500">Available</p>
+                            <p className="font-black text-emerald-500 text-sm sm:text-base">Available</p>
                         </div>
-                        <div className="bg-gray-50/50 p-6 rounded-3xl border border-gray-100">
+                        <div className="bg-gray-100/30 p-4 sm:p-6 rounded-3xl border border-gray-100/50 col-span-2 sm:col-span-1">
                             <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest mb-1">Location</p>
-                            <p className="font-black text-gray-900 truncate">Kuala Lumpur</p>
+                            <p className="font-black text-gray-900 text-sm sm:text-base truncate">Kuala Lumpur</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Content Column */}
-                <div className="flex-1 flex flex-col">
+                <div className="flex-1 flex flex-col min-w-0">
                     <div className="mb-8">
                         <div className="flex items-center gap-2 mb-4">
                             <span className="w-8 h-1 bg-brand-600 rounded-full"></span>
                             <span className="text-brand-600 font-black uppercase tracking-[0.3em] text-[10px]">Product Identity</span>
                         </div>
-                        <h1 className="text-5xl lg:text-6xl font-black text-gray-900 leading-[0.9] tracking-tighter mb-6">
+                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 leading-[0.9] tracking-tighter mb-6 break-words">
                             {item.title}
                         </h1>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-gray-400 font-bold text-2xl tracking-tighter">RM</span>
-                            <span className="text-6xl font-black text-brand-600 tracking-tighter leading-none">
+                            <span className="text-gray-400 font-bold text-xl sm:text-2xl tracking-tighter">RM</span>
+                            <span className="text-5xl sm:text-6xl font-black text-brand-600 tracking-tighter leading-none">
                                 {item.price.toLocaleString()}
                             </span>
                         </div>
                     </div>
 
-                    <div className="brand-card p-10 mb-8 flex-grow">
+                    <div className="brand-card p-6 sm:p-10 mb-8 flex-grow">
                         <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-6 flex items-center gap-3">
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 6h16M4 12h16m-7 6h7" /></svg>
                             Narrative
                         </h2>
-                        <p className="text-gray-700 leading-relaxed text-lg font-medium whitespace-pre-wrap">
+                        <p className="text-gray-700 leading-relaxed text-base sm:text-lg font-medium whitespace-pre-wrap">
                             {item.description}
                         </p>
                     </div>

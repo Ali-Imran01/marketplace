@@ -42,10 +42,11 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'user' => $user,
+            'user' => new \App\Http\Resources\UserResource($user),
             'access_token' => $token,
             'token_type' => 'Bearer',
             'debug_otp' => config('app.env') === 'local' ? $otp : null,
+            'requires_verification' => true,
             'message' => 'Registration successful. Please verify your email with the OTP sent.'
         ]);
     }
@@ -76,20 +77,20 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid OTP'], 422);
         }
 
-        $user->update([
-            'email_verified_at' => now(),
-            'otp_code' => null,
-            'otp_expires_at' => null,
-            'otp_attempts' => 0,
-        ]);
+        $user->email_verified_at = now();
+        $user->otp_code = null;
+        $user->otp_expires_at = null;
+        $user->otp_attempts = 0;
+        $user->save();
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
             'message' => 'Email verified successfully.',
-            'user' => $user,
+            'user' => new \App\Http\Resources\UserResource($user),
             'access_token' => $token,
             'token_type' => 'Bearer',
+            'requires_verification' => false,
         ]);
     }
 
@@ -151,7 +152,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'Bearer',
-            'user' => $user,
+            'user' => new \App\Http\Resources\UserResource($user),
             'requires_verification' => !$user->email_verified_at,
             'debug_otp' => (config('app.env') === 'local' && !$user->email_verified_at) ? $user->otp_code : null,
         ]);
@@ -168,6 +169,6 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        return new \App\Http\Resources\UserResource($request->user());
     }
 }

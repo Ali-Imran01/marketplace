@@ -4,7 +4,7 @@ import notificationService from '../api/notificationService';
 import { useAuth } from '../context/AuthContext';
 
 const NotificationDropdown = () => {
-    const { isAuthenticated, isVerified } = useAuth();
+    const { isAuthenticated, isVerified, user } = useAuth();
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
@@ -25,10 +25,28 @@ const NotificationDropdown = () => {
     useEffect(() => {
         if (isAuthenticated && isVerified) {
             fetchNotifications();
-            const interval = setInterval(fetchNotifications, 30000); // Poll every 30s
-            return () => clearInterval(interval);
+
+            // Listen for private notifications
+            const channel = window.Echo.private(`App.Models.User.${user.id}`)
+                .notification((notification) => {
+                    console.log("New notification received", notification);
+                    setNotifications(prev => [
+                        {
+                            id: notification.id,
+                            data: notification,
+                            created_at: new Date().toISOString(),
+                            read_at: null
+                        },
+                        ...prev
+                    ]);
+                    setUnreadCount(prev => prev + 1);
+                });
+
+            return () => {
+                window.Echo.leave(`App.Models.User.${user.id}`);
+            };
         }
-    }, [isAuthenticated, isVerified]);
+    }, [isAuthenticated, isVerified, user?.id]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {

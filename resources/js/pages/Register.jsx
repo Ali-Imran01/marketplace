@@ -27,9 +27,15 @@ const Register = () => {
         try {
             const data = await register(formData);
             if (data.debug_otp) {
-                alert(`DEBUG MODE: Your OTP is ${data.debug_otp}. Please write it down.`);
+                // Short timeout to let the state settle before navigation
+                setTimeout(() => alert(`DEBUG MODE: Your OTP is ${data.debug_otp}. Please write it down.`), 100);
             }
-            navigate('/');
+
+            if (data.requires_verification) {
+                navigate('/verify-email');
+            } else {
+                navigate('/');
+            }
         } catch (err) {
             setError(err.response?.data?.message || 'Registration failed. Please try again.');
         } finally {

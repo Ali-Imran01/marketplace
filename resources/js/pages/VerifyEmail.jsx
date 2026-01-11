@@ -34,10 +34,13 @@ const VerifyEmail = () => {
             const res = await api.post('/verify-otp', { email: user.email, otp });
             setMessage({ type: 'success', content: res.data.message });
 
-            // Update user state locally
-            const updatedUser = { ...user, email_verified_at: new Date().toISOString() };
+            // Update user state locally from server response
+            const updatedUser = res.data.user;
             setUser(updatedUser);
             localStorage.setItem('user', JSON.stringify(updatedUser));
+            if (res.data.access_token) {
+                localStorage.setItem('token', res.data.access_token);
+            }
 
             setTimeout(() => navigate('/'), 2000);
         } catch (error) {

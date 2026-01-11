@@ -9,25 +9,45 @@ export const AuthProvider = ({ children }) => {
         return saved ? JSON.parse(saved) : null;
     });
 
+    useEffect(() => {
+        const syncUser = async () => {
+            if (localStorage.getItem('token')) {
+                try {
+                    const res = await api.get('/me');
+                    const userData = res.data.data || res.data;
+                    setUser(userData);
+                    localStorage.setItem('user', JSON.stringify(userData));
+                } catch (err) {
+                    if (err.response?.status === 401) {
+                        logout();
+                    }
+                }
+            }
+        };
+        syncUser();
+    }, []);
+
     const login = async (credentials) => {
         const res = await api.post('/login', credentials);
         const { access_token, user: userData } = res.data;
-        setUser(userData);
+        const finalUser = userData?.data || userData;
+        setUser(finalUser);
         if (access_token) {
             localStorage.setItem('token', access_token);
         }
-        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('user', JSON.stringify(finalUser));
         return res.data;
     };
 
     const register = async (userData) => {
         const res = await api.post('/register', userData);
         const { access_token, user: newUserData } = res.data;
-        setUser(newUserData);
+        const finalUser = newUserData?.data || newUserData;
+        setUser(finalUser);
         if (access_token) {
             localStorage.setItem('token', access_token);
         }
-        localStorage.setItem('user', JSON.stringify(newUserData));
+        localStorage.setItem('user', JSON.stringify(finalUser));
         return res.data;
     };
 
@@ -44,7 +64,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const isAuthenticated = !!localStorage.getItem('token');
-    const isVerified = user?.email_verified_at !== null && user?.email_verified_at !== undefined;
+    const isVerified = Boolean(user && user.email_verified_at);
     const isAdmin = () => user?.role === 'admin';
 
     return (

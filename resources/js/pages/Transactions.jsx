@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { transactionService } from '../api/transactionService';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
+import { confirmAction, showAlert } from '../utils/swal';
 
 const Transactions = () => {
     const { t } = useTranslation();
@@ -10,6 +11,7 @@ const Transactions = () => {
     const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('buying'); // 'buying' or 'selling'
+    const [subActiveTab, setSubActiveTab] = useState('all');
 
     const fetchTransactions = async () => {
         try {
@@ -27,14 +29,22 @@ const Transactions = () => {
     }, [user]);
 
     const handleUpdateStatus = async (id, status) => {
-        if (status === 'CANCELLED' && !window.confirm("Are you sure you want to cancel this order?")) return;
+        if (status === 'CANCELLED') {
+            const result = await confirmAction(
+                "Cancel Order?",
+                "Are you sure you want to withdraw this offer? This action cannot be undone.",
+                "Yes, Cancel"
+            );
+            if (!result.isConfirmed) return;
+        }
 
         try {
             await transactionService.update(id, status);
+            await showAlert("Success!", `Order status updated to ${status.toLowerCase().replace('_', ' ')}`, 'success');
             fetchTransactions();
         } catch (error) {
             console.error("Failed to update status", error);
-            alert("An error occurred. Please try again later.");
+            showAlert("Ops!", "An error occurred while updating the status. Please try again.", 'error');
         }
     };
 
@@ -52,45 +62,90 @@ const Transactions = () => {
     };
 
     const getProgress = (status) => {
-        const stages = ['REQUESTED', 'ACCEPTED', 'ITEM_SENT', 'COMPLETED'];
+        const stages = ['REQUESTED', 'ACCEPTED', 'ITEM_SENT', 'COMPLETED', 'RECEIVED'];
         if (status === 'REJECTED' || status === 'CANCELLED') return -1;
         const index = stages.indexOf(status);
         if (index === -1) return 0;
         return ((index + 1) / stages.length) * 100;
     };
 
-    const filteredTransactions = transactions.filter(txn => {
+    const roleTransactions = transactions.filter(txn => {
         if (activeTab === 'buying') return txn.buyer.id === user.id;
         return txn.seller.id === user.id;
     });
 
-    if (loading) return <div className="max-w-7xl mx-auto px-4 py-32 text-center animate-pulse text-gray-400 font-black uppercase tracking-[0.3em]">Synchronizing Activity...</div>;
+    const getSubTabTransactions = (tab, list) => {
+        switch (tab) {
+            case 'pending': return list.filter(t => ['REQUESTED', 'ACCEPTED'].includes(t.status));
+            case 'logistics': return list.filter(t => ['ITEM_SENT'].includes(t.status));
+            case 'finished': return list.filter(t => ['RECEIVED', 'COMPLETED'].includes(t.status));
+            case 'cancelled': return list.filter(t => ['CANCELLED', 'REJECTED'].includes(t.status));
+            default: return list;
+        }
+    };
+
+    const filteredTransactions = getSubTabTransactions(subActiveTab, roleTransactions);
+
+    const counts = {
+        all: roleTransactions.length,
+        pending: getSubTabTransactions('pending', roleTransactions).length,
+        logistics: getSubTabTransactions('logistics', roleTransactions).length,
+        finished: getSubTabTransactions('finished', roleTransactions).length,
+        cancelled: getSubTabTransactions('cancelled', roleTransactions).length,
+    };
+
+    if (loading) return <div className="max-w-7xl mx-auto px-4 py-32 text-center animate-pulse text-gray-400 font-black uppercase tracking-[0.3em] dark:text-gray-500">Synchronizing Activity...</div>;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-12">
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-16 gap-10">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 py-10 lg:py-12">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-10">
                 <div className="flex flex-col gap-4">
                     <div className="flex items-center gap-2">
                         <span className="w-8 h-1 bg-brand-600 rounded-full"></span>
                         <span className="text-brand-600 font-black uppercase tracking-[0.3em] text-[10px]">Operations Center</span>
                     </div>
-                    <h1 className="text-5xl lg:text-6xl font-black text-gray-900 tracking-tighter leading-none">Marketplace Activity</h1>
+                    <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-gray-900 dark:text-white tracking-tighter leading-none break-words">Marketplace Activity</h1>
                 </div>
 
-                <div className="bg-gray-100/50 p-2 rounded-[1.5rem] flex gap-2 backdrop-blur-sm border border-gray-100">
+                <div className="bg-gray-100/50 dark:bg-gray-800/50 p-2 rounded-[1.5rem] flex gap-2 backdrop-blur-sm border border-gray-100 dark:border-gray-700 w-full md:w-auto">
                     <button
-                        onClick={() => setActiveTab('buying')}
-                        className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'buying' ? 'bg-white text-brand-600 shadow-xl shadow-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
+                        onClick={() => { setActiveTab('buying'); setSubActiveTab('all'); }}
+                        className={`flex-1 md:flex-none px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'buying' ? 'bg-white dark:bg-gray-700 text-brand-600 dark:text-white shadow-xl shadow-gray-200 dark:shadow-none' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}
                     >
                         {t('Buying')}
                     </button>
                     <button
-                        onClick={() => setActiveTab('selling')}
-                        className={`px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'selling' ? 'bg-white text-brand-600 shadow-xl shadow-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
+                        onClick={() => { setActiveTab('selling'); setSubActiveTab('all'); }}
+                        className={`flex-1 md:flex-none px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'selling' ? 'bg-white dark:bg-gray-700 text-brand-600 dark:text-white shadow-xl shadow-gray-200 dark:shadow-none' : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-200'}`}
                     >
                         {t('Selling')}
                     </button>
                 </div>
+            </div>
+
+            {/* Granular Sub-Tabs */}
+            <div className="flex flex-wrap gap-2 mb-10 overflow-x-auto pb-4 scrollbar-hide">
+                {[
+                    { id: 'all', label: 'All' },
+                    { id: 'pending', label: 'Ordering' },
+                    { id: 'logistics', label: 'Sending' },
+                    { id: 'finished', label: 'Finished' },
+                    { id: 'cancelled', label: 'History' },
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setSubActiveTab(tab.id)}
+                        className={`flex items-center gap-2 px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shrink-0 border-2
+                            ${subActiveTab === tab.id
+                                ? 'bg-brand-600 border-brand-600 text-white shadow-xl shadow-brand-600/30'
+                                : 'bg-white dark:bg-gray-900 border-gray-100 dark:border-gray-800 text-gray-400 hover:border-brand-200 dark:hover:border-brand-900'}`}
+                    >
+                        {tab.label}
+                        <span className={`px-2 py-0.5 rounded-lg text-[9px] ${subActiveTab === tab.id ? 'bg-white/20 text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-400'}`}>
+                            {counts[tab.id]}
+                        </span>
+                    </button>
+                ))}
             </div>
 
             <div className="grid gap-8">
@@ -124,19 +179,19 @@ const Transactions = () => {
                                                         {statusInfo.label}
                                                     </span>
                                                 </div>
-                                                <h3 className="text-2xl font-black text-gray-900 truncate mb-1 tracking-tight">{txn.item.title}</h3>
+                                                <h3 className="text-2xl font-black text-gray-900 dark:text-white truncate mb-1 tracking-tight">{txn.item.title}</h3>
                                                 <div className="flex items-baseline gap-1 mb-6">
-                                                    <span className="text-gray-300 font-bold text-sm">RM</span>
+                                                    <span className="text-gray-300 dark:text-gray-600 font-bold text-sm">RM</span>
                                                     <span className="text-3xl font-black text-brand-600 tracking-tighter">{txn.offered_price.toLocaleString()}</span>
                                                 </div>
 
-                                                <div className="flex items-center gap-3 p-3 rounded-2xl bg-gray-50/50 border border-gray-100 inline-flex group/user cursor-pointer">
+                                                <div className="flex items-center gap-3 p-3 rounded-2xl bg-gray-50/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 inline-flex group/user cursor-pointer">
                                                     <div className="w-8 h-8 rounded-xl bg-brand-600 flex items-center justify-center text-[10px] font-black text-white shadow-lg shadow-brand-600/20 group-hover/user:scale-110 transition-transform">
                                                         {(isSeller ? txn.buyer.name : txn.seller.name).charAt(0)}
                                                     </div>
                                                     <div className="text-xs">
                                                         <span className="text-gray-400 font-bold uppercase tracking-widest mr-2">{isSeller ? 'Target:' : 'Source:'}</span>
-                                                        <span className="text-gray-900 font-black">{isSeller ? txn.buyer.name : txn.seller.name}</span>
+                                                        <span className="text-gray-900 dark:text-gray-200 font-black">{isSeller ? txn.buyer.name : txn.seller.name}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -171,7 +226,7 @@ const Transactions = () => {
                                                 )}
 
                                                 {!isSeller && (txn.status === 'REQUESTED' || txn.status === 'ACCEPTED') && (
-                                                    <button onClick={() => handleUpdateStatus(txn.id, 'CANCELLED')} className="w-full px-8 py-4 rounded-2xl bg-white border-2 border-gray-100 text-gray-400 text-xs font-black uppercase tracking-widest hover:border-rose-100 hover:text-rose-500 transition-all">Withdraw Offer</button>
+                                                    <button onClick={() => handleUpdateStatus(txn.id, 'CANCELLED')} className="w-full px-8 py-4 rounded-2xl bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-gray-400 text-xs font-black uppercase tracking-widest hover:border-rose-100 dark:hover:border-rose-900 hover:text-rose-500 transition-all">Withdraw Offer</button>
                                                 )}
                                                 {!isSeller && txn.status === 'ITEM_SENT' && (
                                                     <button onClick={() => handleUpdateStatus(txn.id, 'COMPLETED')} className="w-full px-8 py-4 rounded-2xl bg-brand-600 text-white text-xs font-black uppercase tracking-widest hover:bg-brand-700 transition-all shadow-xl shadow-brand-600/30 active:scale-95">Finalize Receipt</button>
@@ -185,8 +240,8 @@ const Transactions = () => {
 
                                     {/* Intelligence Bar */}
                                     {progress >= 0 && (
-                                        <div className="mt-12 pt-8 border-t border-gray-50">
-                                            <div className="relative h-2 bg-gray-100 rounded-full overflow-hidden shadow-inner">
+                                        <div className="mt-12 pt-8 border-t border-gray-50 dark:border-gray-800">
+                                            <div className="relative h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden shadow-inner">
                                                 <div
                                                     className="absolute top-0 left-0 h-full bg-gradient-to-r from-brand-600 to-indigo-400 transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1)"
                                                     style={{ width: `${progress}%` }}
@@ -211,13 +266,13 @@ const Transactions = () => {
                         );
                     })
                 ) : (
-                    <div className="text-center py-40 brand-card border-none bg-gray-50/50">
-                        <div className="w-32 h-32 bg-white rounded-[3rem] shadow-2xl shadow-gray-200/50 flex items-center justify-center mx-auto mb-10 text-6xl border border-gray-100">🔭</div>
-                        <h3 className="text-4xl font-black text-gray-900 tracking-tighter mb-4 leading-none">Vacuum of Activity</h3>
+                    <div className="text-center py-40 brand-card border-none bg-gray-50/50 dark:bg-gray-800/20">
+                        <div className="w-32 h-32 bg-white dark:bg-gray-800 rounded-[3rem] shadow-2xl shadow-gray-200/50 dark:shadow-none flex items-center justify-center mx-auto mb-10 text-6xl border border-gray-100 dark:border-gray-700">🔭</div>
+                        <h3 className="text-4xl font-black text-gray-900 dark:text-white tracking-tighter mb-4 leading-none">Vacuum of Activity</h3>
                         <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] max-w-xs mx-auto mb-12">
                             {activeTab === 'buying' ? "No purchase narratives discovered yet. Seek new items in the collective." : "No sales trajectories initiated. Curate your first listing today."}
                         </p>
-                        <Link to="/" className="inline-block px-12 py-5 bg-black text-white rounded-[2.5rem] font-black uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-2xl">
+                        <Link to="/" className="inline-block px-12 py-5 bg-black dark:bg-brand-600 text-white rounded-[2.5rem] font-black uppercase tracking-widest text-xs hover:scale-105 transition-all shadow-2xl">
                             Browse Collection →
                         </Link>
                     </div>

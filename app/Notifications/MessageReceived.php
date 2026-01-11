@@ -5,7 +5,10 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Notification;
 
-class MessageReceived extends Notification
+use Illuminate\Notifications\Messages\BroadcastMessage;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+
+class MessageReceived extends Notification implements ShouldBroadcast
 {
     use Queueable;
 
@@ -18,7 +21,7 @@ class MessageReceived extends Notification
 
     public function via($notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     public function toArray($notifiable): array
