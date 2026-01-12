@@ -1,66 +1,91 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SecondChance – Recommerce Marketplace Platform
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+**SecondChance** is a sophisticated, premium web platform designed for buying and selling pre-owned items. It focuses on **user trust, minimal cognitive load, and a guided experience**, bridging the "fragmentation gap" in traditional marketplaces.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Vision & Purpose
+SecondChance isn't just a list of items; it's a **curated transaction ecosystem**. The platform is built to demonstrate:
+- **Full-stack Excellence**: Seamless integration between a robust Laravel API and a dynamic React frontend.
+- **Guided UX**: Reducing user friction with wizard-based flows and intelligent status management.
+- **Trust Architecture**: Comprehensive condition declarations and a strict transaction state machine.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## ✨ Key Features
 
-## Learning Laravel
+### 🛠️ Guided Item Listing (Wizard)
+- **Step-by-Step Flow**: Instead of long, overwhelming forms, sellers are guided through category selection, condition checklists, and photo uploads.
+- **Condition-Based Trust**: Mandatory condition declarations (NEW, LIKE_NEW, GOOD, FAIR) with category-specific criteria.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 🔄 Transaction State Machine
+- **Strict Flow**: Transactions follow an immutable path: `AVAILABLE` ➔ `REQUESTED` ➔ `ACCEPTED` ➔ `SHIPPED` ➔ `DELIVERED` ➔ `COMPLETED`.
+- **Anti-Double Sale**: Items are automatically locked (Reserved) during active negotiations.
+- **Smart Cancellation**: Automated inventory reversal when orders are cancelled.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### 💬 Interaction Engine
+- **Predefined Inquiries**: Control initial interactions to reduce spam.
+- **Real-Time Messaging**: Polling-based chat once initial interest is accepted.
+- **Notification System**: Real-time alerts for messages and order updates.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 📊 Advanced Dashboard
+- **Role-Based Views**: Distinct interfaces for Buyers and Sellers.
+- **Visual Timelines**: Progress trackers for every order.
+- **Admin Control Center**: Full visibility over users and listings to maintain community standards.
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🛠️ Technology Stack
 
-### Premium Partners
+### Backend (The Brain)
+- **Framework**: Laravel 10 (API-First Architecture)
+- **Authentication**: Laravel Sanctum (Secure token-based auth)
+- **Logic Layer**: Centralized `Services` and `Policies` for clean business logic.
+- **Database**: MySQL (Relational schema with full audit logging).
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### Frontend (The Soul)
+- **Framework**: React (Vite)
+- **Styling**: Tailwind CSS & Material UI (MUI) for a premium, responsive aesthetic.
+- **State Management**: React Context (Auth & Internationalization).
+- **Multi-Language**: Full implementation of `react-i18next` (English & Bahasa Melayu).
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🛡️ Security & Auditing
+- **Ownership Policies**: Strict Laravel Policies ensure only owners can manage their listings.
+- **Activity Logs**: Every major action is audited (price changes, status transitions, etc.).
+- **Data Isolation**: Multi-tenant style isolation at the database level for user data privacy.
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🏁 Development Status
 
-## Security Vulnerabilities
+| Phase | Description | Status |
+| :--- | :--- | :--- |
+| **Phase 1-6** | Core Marketplace Logic & CRUD | ✅ Done |
+| **Phase 7** | Production Readiness (Auth & Admin) | ✅ Done |
+| **Phase 8** | Advanced UI, Real-time Alerts & Filters | ✅ Done |
+| **Phase 9** | Dashboard Evolution & Order Management | ✅ Done |
+| **Phase 10** | Production Hardening & Audit Logs | ✅ Done |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+---
 
-## License
+## ⚙️ Installation & Setup
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1. **Clone the repository**
+2. **Backend Setup**:
+   ```bash
+   composer install
+   php artisan migrate --seed
+   php artisan serve
+   ```
+3. **Frontend Setup**:
+   ```bash
+   npm install
+   npm run dev
+   ```
+4. **Environment**: Configure `.env` with your database and Pusher credentials (if applicable).
+
+---
+
+*Developed with ❤️ by Ali-Imran01*
